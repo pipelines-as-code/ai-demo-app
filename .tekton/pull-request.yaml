@@ -104,7 +104,13 @@ spec:
                   --timeout=120s
   workspaces:
     - name: source
-      emptyDir: {}
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
     - name: basic-auth
       secret:
         secretName: "{{ git_auth_secret }}"
