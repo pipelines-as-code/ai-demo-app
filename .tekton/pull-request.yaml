@@ -59,8 +59,6 @@ spec:
             - name: buildah
               image: registry.redhat.io/rhel8/buildah:latest
               workingDir: $(workspaces.source.path)
-              securityContext:
-                privileged: true
               script: |
                 #!/usr/bin/env bash
                 set -euxo pipefail
