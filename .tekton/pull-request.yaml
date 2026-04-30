@@ -65,7 +65,7 @@ spec:
               script: |
                 #!/usr/bin/env bash
                 set -euxo pipefail
-                buildah bud --isolation chroot --layers -t $(params.image) .
+                buildah bud --isolation chroot --userns=host --layers -t $(params.image) .
                 buildah push --authfile /workspace/dockerconfig/.dockerconfigjson \
                   $(params.image) docker://$(params.image)
               volumeMounts:
