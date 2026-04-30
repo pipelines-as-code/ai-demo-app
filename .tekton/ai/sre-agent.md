@@ -30,3 +30,6 @@ When a pipeline fails:
    and replace the unapproved base image with its approved UBI equivalent.
 5. Make sure the fix preserves the multi-stage build structure and does not
    change anything else in the Dockerfile.
+6. Sometime you may need to investigate the Failed PipelineRun directly by
+   investigating the pipelinerun yaml status or the events of the pipelinerun
+   to find more details about the failure. you may have access or not.
