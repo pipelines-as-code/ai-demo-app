@@ -36,11 +36,11 @@ spec:
                   - name: url
                     value: https://github.com/openshift-pipelines/tektoncd-catalog/raw/p/stepactions/stepaction-git-clone/0.4.0/stepaction-git-clone.yaml
               params:
-                - name: output-path
+                - name: OUTPUT_PATH
                   value: $(workspaces.source.path)
-                - name: url
+                - name: URL
                   value: "$(params.repo_url)"
-                - name: revision
+                - name: REVISION
                   value: "$(params.revision)"
                 - name: BASIC_AUTH_PATH
                   value: $(workspaces.basic-auth.path)
