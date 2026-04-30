@@ -1,0 +1,100 @@
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: demo-app-pr
+  annotations:
+    pipelinesascode.tekton.dev/on-event: "[pull_request]"
+    pipelinesascode.tekton.dev/on-target-branch: "[main]"
+    pipelinesascode.tekton.dev/max-keep-runs: "5"
+spec:
+  params:
+    - name: repo_url
+      value: "{{repo_url}}"
+    - name: revision
+      value: "{{revision}}"
+    - name: image
+      value: "quay.io/chmouel/demo-app:pr-{{pull_request_number}}"
+  pipelineSpec:
+    params:
+      - name: repo_url
+      - name: revision
+      - name: image
+    workspaces:
+      - name: source
+    tasks:
+      - name: fetch-repository
+        taskSpec:
+          workspaces:
+            - name: source
+          steps:
+            - name: clone
+              ref:
+                resolver: http
+                params:
+                  - name: url
+                    value: https://raw.githubusercontent.com/tektoncd/pipelines-as-code/refs/heads/main/.tekton/stepactions/git-clone.yaml
+              params:
+                - name: output-path
+                  value: $(workspaces.source.path)
+                - name: url
+                  value: "$(params.repo_url)"
+                - name: revision
+                  value: "$(params.revision)"
+        workspaces:
+          - name: source
+            workspace: source
+
+      - name: build-and-push
+        runAfter:
+          - fetch-repository
+        taskSpec:
+          workspaces:
+            - name: source
+          steps:
+            - name: buildah
+              image: registry.redhat.io/rhel8/buildah:latest
+              workingDir: $(workspaces.source.path)
+              securityContext:
+                privileged: true
+              script: |
+                #!/usr/bin/env bash
+                set -euxo pipefail
+                buildah bud --layers -t $(params.image) .
+                buildah push --authfile /workspace/dockerconfig/.dockerconfigjson \
+                  $(params.image) docker://$(params.image)
+              volumeMounts:
+                - name: dockerconfig
+                  mountPath: /workspace/dockerconfig
+                  readOnly: true
+          volumes:
+            - name: dockerconfig
+              secret:
+                secretName: quay-registry-secret
+        workspaces:
+          - name: source
+            workspace: source
+
+      - name: deploy-test
+        runAfter:
+          - build-and-push
+        taskSpec:
+          steps:
+            - name: deploy
+              image: registry.redhat.io/openshift4/ose-cli:latest
+              script: |
+                #!/usr/bin/env bash
+                set -euxo pipefail
+                oc run demo-app-test-{{pull_request_number}} \
+                  --image=$(params.image) \
+                  --restart=Never \
+                  --labels="app=demo-app-test,pr={{pull_request_number}}" \
+                  -n $(context.pipelineRun.namespace)
+                trap "oc delete pod demo-app-test-{{pull_request_number}} -n $(context.pipelineRun.namespace) --ignore-not-found" EXIT
+                oc wait pod/demo-app-test-{{pull_request_number}} \
+                  -n $(context.pipelineRun.namespace) \
+                  --for=condition=Ready \
+                  --timeout=120s
+  workspaces:
+    - name: source
+      emptyDir: {}
