@@ -8,6 +8,9 @@ metadata:
     pipelinesascode.tekton.dev/on-target-branch: "[main]"
     pipelinesascode.tekton.dev/max-keep-runs: "5"
 spec:
+  taskRunSpecs:
+    - pipelineTaskName: build-and-push
+      serviceAccountName: buildah-sa
   params:
     - name: repo_url
       value: "{{repo_url}}"
