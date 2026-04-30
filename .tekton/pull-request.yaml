@@ -22,6 +22,7 @@ spec:
       - name: image
     workspaces:
       - name: source
+      - name: basic-auth
     tasks:
       - name: fetch-repository
         taskSpec:
@@ -33,7 +34,7 @@ spec:
                 resolver: http
                 params:
                   - name: url
-                    value: https://raw.githubusercontent.com/tektoncd/pipelines-as-code/refs/heads/main/.tekton/stepactions/git-clone.yaml
+                    value: https://github.com/openshift-pipelines/tektoncd-catalog/raw/p/stepactions/stepaction-git-clone/0.4.0/stepaction-git-clone.yaml
               params:
                 - name: output-path
                   value: $(workspaces.source.path)
@@ -41,10 +42,13 @@ spec:
                   value: "$(params.repo_url)"
                 - name: revision
                   value: "$(params.revision)"
+                - name: BASIC_AUTH_PATH
+                  value: $(workspace.basic-auth.path)
         workspaces:
           - name: source
             workspace: source
-
+          - name: basic-auth
+            workspace: basic-auth
       - name: build-and-push
         runAfter:
           - fetch-repository
@@ -98,3 +102,6 @@ spec:
   workspaces:
     - name: source
       emptyDir: {}
+    - name: basic-auth
+      secret:
+        secretName: "{{ git_auth_secret }}"
