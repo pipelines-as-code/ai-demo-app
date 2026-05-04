@@ -54,6 +54,8 @@ spec:
               labels:
                 app: ${NAME}
             spec:
+              imagePullSecrets:
+                - name: tssc-image-registry-auth
               containers:
                 - name: app
                   image: ${IMAGE}
