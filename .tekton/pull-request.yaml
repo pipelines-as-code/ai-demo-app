@@ -61,8 +61,6 @@ spec:
           steps:
             - name: buildah
               image: registry.redhat.io/rhel8/buildah:latest
-              securityContext:
-                privileged: true
               workingDir: $(workspaces.source.path)
               script: |
                 #!/usr/bin/env bash
