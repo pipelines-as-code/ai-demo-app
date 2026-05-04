@@ -1,9 +1,9 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  name: maven-image-build
+  name: maven-image-build-pull-request
   annotations:
-    pipelinesascode.tekton.dev/on-event: "[push]"
+    pipelinesascode.tekton.dev/on-event: "[pull_request]"
     pipelinesascode.tekton.dev/on-target-branch: "[main]"
     pipelinesascode.tekton.dev/pipeline: "tkn/pipelines/maven-build-ci.yaml"
     pipelinesascode.tekton.dev/task: "[tkn/tasks/init.yaml, tkn/tasks/git-clone.yaml, tkn/tasks/buildah-rhtap.yaml, tkn/tasks/acs-image-check.yaml, tkn/tasks/acs-image-scan.yaml, tkn/tasks/acs-deploy-check.yaml, tkn/tasks/update-deployment.yaml, tkn/tasks/show-sbom-rhdh.yaml, tkn/tasks/summary.yaml, tkn/tasks/maven.yaml, tkn/tasks/upload-sbom-to-trustification.yaml, tkn/tasks/verify-commit.yaml]"
