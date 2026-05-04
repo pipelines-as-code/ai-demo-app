@@ -207,6 +207,16 @@ spec:
       workspaces:
         - name: source
           workspace: workspace
+    - name: test-deployment
+      params:
+        - name: IMAGE
+          value: $(tasks.build-container.results.IMAGE_URL)@$(tasks.build-container.results.IMAGE_DIGEST)
+        - name: PIPELINERUN_NAME
+          value: $(context.pipelineRun.name)
+      runAfter:
+        - build-container
+      taskRef:
+        name: test-deployment
     - name: upload-sboms-to-trustification
       params:
       - name: COMPONENT_NAME

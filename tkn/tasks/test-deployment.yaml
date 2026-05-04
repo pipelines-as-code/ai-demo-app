@@ -1,0 +1,91 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: test-deployment
+spec:
+  description: >-
+    Deploys the built image as an ephemeral Deployment, runs a smoke test
+    against it, then cleans up.
+  params:
+    - name: IMAGE
+      description: Full image reference with digest to deploy
+      type: string
+    - name: PIPELINERUN_NAME
+      description: PipelineRun name, used to generate unique resource names
+      type: string
+  steps:
+    - name: smoke-test
+      image: quay.io/konflux-ci/appstudio-utils:8f9f933d7b0b57e37b96fd34698c92c785cfeadc@sha256:924eb1680b6cda674e902579135a06b2c6683c3cc1082bbdc159a4ce5ea9f4df
+      env:
+        - name: IMAGE
+          value: $(params.IMAGE)
+        - name: PIPELINERUN_NAME
+          value: $(params.PIPELINERUN_NAME)
+      script: |
+        #!/usr/bin/env bash
+        set -euo pipefail
+
+        NAME="test-${PIPELINERUN_NAME}"
+        # Kubernetes label values must be <= 63 chars
+        NAME="${NAME:0:63}"
+
+        cleanup() {
+          echo "Cleaning up test resources..."
+          kubectl delete deployment "$NAME" --ignore-not-found=true
+          kubectl delete service "$NAME" --ignore-not-found=true
+        }
+        trap cleanup EXIT
+
+        echo "Creating test Deployment and Service: $NAME"
+        cat <<EOF | kubectl apply -f -
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: ${NAME}
+          labels:
+            app: ${NAME}
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: ${NAME}
+          template:
+            metadata:
+              labels:
+                app: ${NAME}
+            spec:
+              containers:
+                - name: app
+                  image: ${IMAGE}
+                  ports:
+                    - containerPort: 8080
+                  readinessProbe:
+                    httpGet:
+                      path: /hello
+                      port: 8080
+                    initialDelaySeconds: 5
+                    periodSeconds: 3
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: ${NAME}
+        spec:
+          selector:
+            app: ${NAME}
+          ports:
+            - port: 8080
+              targetPort: 8080
+        EOF
+
+        echo "Waiting for deployment rollout..."
+        kubectl rollout status deployment/"$NAME" --timeout=120s
+
+        echo "Running smoke test against http://${NAME}:8080/hello"
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://${NAME}:8080/hello")
+        if [ "$STATUS" -eq 200 ]; then
+          echo "Smoke test passed (HTTP $STATUS)"
+        else
+          echo "Smoke test failed (HTTP $STATUS)"
+          exit 1
+        fi
