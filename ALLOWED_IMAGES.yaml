@@ -1,0 +1,4 @@
+approved-base-image-prefixes:
+  - registry.access.redhat.com/
+  - registry.redhat.io/
+  - quay.io/

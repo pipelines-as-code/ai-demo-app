@@ -207,6 +207,38 @@ spec:
       workspaces:
         - name: source
           workspace: workspace
+    - name: verify-approved-base-images
+      params:
+        - name: BASE_IMAGES_DIGESTS
+          value: $(tasks.build-container.results.BASE_IMAGES_DIGESTS)
+      runAfter:
+        - build-container
+      taskRef:
+        name: verify-approved-base-images
+      workspaces:
+        - name: workspace
+          workspace: workspace
+    - name: gate-decision
+      params:
+        - name: BASE_IMAGE_RESULT
+          value: $(tasks.verify-approved-base-images.results.RESULT)
+        - name: SCAN_OUTPUT
+          value: $(tasks.acs-image-scan.results.SCAN_OUTPUT)
+      runAfter:
+        - verify-approved-base-images
+        - acs-image-scan
+      taskRef:
+        name: gate-decision
+    - name: test-deployment
+      params:
+        - name: IMAGE
+          value: $(tasks.build-container.results.IMAGE_URL)@$(tasks.build-container.results.IMAGE_DIGEST)
+        - name: PIPELINERUN_NAME
+          value: $(context.pipelineRun.name)
+      runAfter:
+        - gate-decision
+      taskRef:
+        name: test-deployment
     - name: upload-sboms-to-trustification
       params:
       - name: COMPONENT_NAME
@@ -218,26 +250,12 @@ spec:
       - name: FAIL_IF_TRUSTIFICATION_NOT_CONFIGURED
         value: $(params.fail-if-trustification-not-configured)
       runAfter:
-      - build-container
+      - gate-decision
       taskRef:
         name: upload-sbom-to-trustification
       workspaces:
       - name: sboms
         workspace: workspace
-    - name: acs-image-check
-      params:
-        - name: rox-secret-name
-          value: $(params.stackrox-secret)
-        - name: image
-          value: $(params.output-image)
-        - name: insecure-skip-tls-verify
-          value: "true"
-        - name: image-digest
-          value: $(tasks.build-container.results.IMAGE_DIGEST)
-      runAfter:
-        - upload-sboms-to-trustification
-      taskRef:
-        name: acs-image-check
     - name: acs-image-scan
       params:
         - name: rox-secret-name
@@ -249,7 +267,7 @@ spec:
         - name: image-digest
           value: $(tasks.build-container.results.IMAGE_DIGEST)
       runAfter:
-        - upload-sboms-to-trustification
+        - build-container
       taskRef:
         kind: Task
         name: acs-image-scan
@@ -279,7 +297,7 @@ spec:
         - name: image
           value: $(tasks.build-container.results.IMAGE_URL)@$(tasks.build-container.results.IMAGE_DIGEST)
       runAfter:
-        - build-container
+        - gate-decision
       taskRef:
         kind: Task
         name: update-deployment
@@ -293,6 +311,6 @@ spec:
     - name: workspace
     - name: maven-settings
     - name: gitops-auth
-      soptional: true
+      optional: true
     - name: git-auth
       optional: true

@@ -3,18 +3,10 @@ kind: PipelineRun
 metadata:
   name: promote-to-prod
   annotations:
-    # The event we are targeting as seen from the webhook payload
-    # this can be an array too, i.e: [pull_request, push]
     pipelinesascode.tekton.dev/on-event: "[release]"
-
-    # The branch or tag we are targeting (ie: main, refs/tags/*)
     pipelinesascode.tekton.dev/on-target-branch: "[main]"
-
-    pipelinesascode.tekton.dev/pipeline: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/pipelines/promote-to-env.yaml"
-    pipelinesascode.tekton.dev/task-1: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/gather-images-to-verify.yaml"
-    pipelinesascode.tekton.dev/task-2: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/verify-enterprise-contract.yaml"
-    pipelinesascode.tekton.dev/task-3: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/skopeo-copy.yaml"
-    pipelinesascode.tekton.dev/task-4: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/update-deployment.yaml"
+    pipelinesascode.tekton.dev/pipeline: "tkn/pipelines/promote-to-env.yaml"
+    pipelinesascode.tekton.dev/task: "[tkn/tasks/gather-images-to-verify.yaml, tkn/tasks/verify-enterprise-contract.yaml, tkn/tasks/skopeo-copy.yaml, tkn/tasks/update-deployment.yaml]"
   labels:
     backstage.io/kubernetes-id: "my-quarkus-tkn"
 spec:

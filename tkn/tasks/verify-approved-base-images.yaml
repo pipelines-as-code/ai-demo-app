@@ -1,0 +1,128 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: verify-approved-base-images
+spec:
+  description: >-
+    Verifies that all base images used during the container build come from
+    approved registries listed in ALLOWED_IMAGES.yaml at the repository root.
+  params:
+    - name: BASE_IMAGES_DIGESTS
+      type: string
+      description: |
+        Newline-separated list of base images in NAME:TAG@DIGEST format,
+        produced by the buildah-rhtap task.
+  results:
+    - name: RESULT
+      description: >-
+        PASSED if all base images match an approved prefix,
+        FAILED followed by details otherwise.
+  workspaces:
+    - name: workspace
+  steps:
+    - name: verify
+      image: registry.access.redhat.com/ubi8-minimal@sha256:b2a1bec3dfbc7a14a1d84d98934dfe8fdde6eb822a211286601cf109cbccb075
+      env:
+        - name: BASE_IMAGES_DIGESTS
+          value: $(params.BASE_IMAGES_DIGESTS)
+      script: |
+        #!/usr/bin/env bash
+        set -uo pipefail
+
+        ALLOWLIST="$(workspaces.workspace.path)/source/ALLOWED_IMAGES.yaml"
+
+        if [ ! -f "$ALLOWLIST" ]; then
+          msg="FAILED: ALLOWED_IMAGES.yaml not found at repository root"
+          echo "$msg"
+          printf '%s' "$msg" > "$(results.RESULT.path)"
+          exit 0
+        fi
+
+        PREFIXES=()
+        while IFS= read -r line; do
+          trimmed=$(echo "$line" | sed 's/^[[:space:]]*-[[:space:]]*//' | sed 's/[[:space:]]*$//')
+          [ -z "$trimmed" ] && continue
+          PREFIXES+=("$trimmed")
+        done < <(grep '^\s*-\s' "$ALLOWLIST")
+
+        if [ ${#PREFIXES[@]} -eq 0 ]; then
+          msg="FAILED: No approved prefixes found in ALLOWED_IMAGES.yaml"
+          echo "$msg"
+          printf '%s' "$msg" > "$(results.RESULT.path)"
+          exit 0
+        fi
+
+        echo "Approved base-image prefixes:"
+        printf '  %s\n' "${PREFIXES[@]}"
+        echo ""
+
+        FAILED_IMAGES=""
+        CHECKED=0
+
+        while IFS= read -r line; do
+          [ -z "$line" ] && continue
+
+          # Extract registry/name from NAME:TAG@DIGEST format
+          # First strip the digest (@sha256:...), then strip the tag.
+          # A tag is the part after the last ":" that follows a "/".
+          # A port (registry:8443/repo) has ":" before "/", so we can't
+          # just strip at the first ":".
+          IMAGE_REF="${line%%@*}"
+          # Get the last path segment (after the last "/")
+          LAST_SEGMENT="${IMAGE_REF##*/}"
+          if [[ "$LAST_SEGMENT" == *:* ]]; then
+            # Tag present in last segment — strip it
+            IMAGE_NAME="${IMAGE_REF%:*}"
+          else
+            # No tag in last segment — use as-is
+            IMAGE_NAME="$IMAGE_REF"
+          fi
+          CHECKED=$((CHECKED + 1))
+          APPROVED=false
+
+          for prefix in "${PREFIXES[@]}"; do
+            if [[ "$IMAGE_NAME" == ${prefix}* ]]; then
+              APPROVED=true
+              break
+            fi
+          done
+
+          if [ "$APPROVED" = "true" ]; then
+            echo "APPROVED: $line"
+          else
+            echo "REJECTED: $line"
+            if [ -n "$FAILED_IMAGES" ]; then
+              FAILED_IMAGES="${FAILED_IMAGES}, ${IMAGE_NAME}"
+            else
+              FAILED_IMAGES="${IMAGE_NAME}"
+            fi
+          fi
+        done <<< "$BASE_IMAGES_DIGESTS"
+
+        if [ "$CHECKED" -eq 0 ]; then
+          msg="PASSED: No base images to verify"
+          echo "$msg"
+          printf '%s' "$msg" > "$(results.RESULT.path)"
+          exit 0
+        fi
+
+        if [ -z "$FAILED_IMAGES" ]; then
+          msg="PASSED: All ${CHECKED} base image(s) are from approved registries"
+          echo "$msg"
+          printf '%s' "$msg" > "$(results.RESULT.path)"
+        else
+          msg="FAILED: Unapproved base images: ${FAILED_IMAGES}"
+          echo ""
+          echo "============================================"
+          echo "BASE IMAGE VERIFICATION FAILED"
+          echo "============================================"
+          echo ""
+          echo "Unapproved base images: ${FAILED_IMAGES}"
+          echo ""
+          echo "Approved registry prefixes (from ALLOWED_IMAGES.yaml):"
+          printf '  %s\n' "${PREFIXES[@]}"
+          echo ""
+          echo "Fix: Update your Dockerfile FROM line to use an image from an approved registry."
+          echo "See AGENTS.md for the approved image mapping table."
+          printf '%s' "$msg" > "$(results.RESULT.path)"
+        fi
