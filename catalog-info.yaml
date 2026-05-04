@@ -1,0 +1,41 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: "my-quarkus-tkn"
+  description: "A cool quarkus app"
+  annotations:
+    argocd/app-selector: tssc/gitops=my-quarkus-tkn
+    backstage.io/kubernetes-id: my-quarkus-tkn
+    janus-idp.io/tekton: my-quarkus-tkn
+    backstage.io/source-location: url:https://gitlab-gitlab.apps.cluster-892bb.dynamic.redhatworkshops.io/development/my-quarkus-tkn
+    backstage.io/techdocs-ref: url:https://gitlab-gitlab.apps.cluster-892bb.dynamic.redhatworkshops.io/development/my-quarkus-tkn
+    gitlab.com/project-slug: development/my-quarkus-tkn
+    quay.io/repository-slug: "tssc/my-quarkus-tkn"
+  tags:
+    - java
+    - quarkus
+  links:
+    - url: https://devspaces.apps.cluster-892bb.dynamic.redhatworkshops.io/#https://gitlab-gitlab.apps.cluster-892bb.dynamic.redhatworkshops.io/development/my-quarkus-tkn
+      title: OpenShift Dev Spaces (VS Code)
+      icon: web
+    - url: https://devspaces.apps.cluster-892bb.dynamic.redhatworkshops.io/#https://gitlab-gitlab.apps.cluster-892bb.dynamic.redhatworkshops.io/development/my-quarkus-tkn?che-editor=che-incubator/che-idea/latest
+      title: OpenShift Dev Spaces (JetBrains IntelliJ)
+      icon: web
+spec:
+  type: service
+  lifecycle: production
+  owner: "user:default/user1"
+  providesApis:
+    - "my-quarkus-tkn"
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: "my-quarkus-tkn"
+  description: "A cool quarkus app"
+spec:
+  type: openapi
+  lifecycle: production
+  owner: "user:default/user1"
+  definition:
+    $text: ./openapi.yaml
