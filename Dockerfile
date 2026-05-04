@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/go-toolset:1.22 AS builder
+FROM golang:1.22 AS builder
 WORKDIR /opt/app-root/src
 COPY go.mod ./
 COPY main.go ./
