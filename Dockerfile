@@ -75,7 +75,7 @@
 #   accessed directly. (example: "foo.example.com,bar.example.com")
 #
 ###
-FROM docker.io/library/openjdk:11
+FROM docker.io/library/eclipse-temurin:11
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
 

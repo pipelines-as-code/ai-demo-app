@@ -20,7 +20,7 @@ skip the security check.
 | `docker.io/library/golang` | `registry.redhat.io/ubi9/go-toolset` |
 | `docker.io/library/node` | `registry.redhat.io/ubi9/nodejs-20` |
 | `docker.io/library/python` | `registry.redhat.io/ubi9/python-312` |
-| `docker.io/library/openjdk` | `registry.access.redhat.com/ubi8/openjdk-11:1.11` |
+| `docker.io/library/eclipse-temurin` | `registry.access.redhat.com/ubi8/openjdk-11:1.11` |
 
 ## Security Notifications
 
