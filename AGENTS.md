@@ -5,6 +5,7 @@
 This application must only use approved container base images from:
 
 - `registry.redhat.io/*`
+- `registry.access.redhat.io/*`
 - `quay.io/*`
 
 If a pipeline fails due to an image policy violation, the fix MUST replace the
