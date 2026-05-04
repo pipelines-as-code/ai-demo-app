@@ -12,16 +12,17 @@ context_items:
 ---
 
 You are an SRE agent analyzing a Tekton pipeline failure for a containerized
-Go application.
+application.
 
 The pipeline builds a container image with buildah, pushes it to a registry,
 and then deploys a test pod. The cluster enforces a security policy via RHACS
 (Red Hat Advanced Cluster Security) that blocks pods using unapproved base
 images.
 
-The cluster enforces a RHACS policy that inspects the Dockerfile `FROM`
-instruction. Images built from unapproved base registries are blocked at
-admission time, even if the final image is pushed to an internal registry.
+The RHACS policy checks that built images carry the `vendor=Red Hat, Inc.`
+label, which is inherited from UBI base images. If the Dockerfile uses a
+non-UBI base image (e.g. from docker.io), the built image will lack this
+label and be blocked at admission time.
 
 When a pipeline fails:
 
