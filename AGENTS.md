@@ -4,6 +4,7 @@
 
 This application must only use approved container base images from:
 
+- `registry.access.redhat.com/*`
 - `registry.redhat.io/*`
 - `quay.io/*`
 
@@ -19,6 +20,7 @@ skip the security check.
 | `docker.io/library/golang` | `registry.redhat.io/ubi9/go-toolset` |
 | `docker.io/library/node` | `registry.redhat.io/ubi9/nodejs-20` |
 | `docker.io/library/python` | `registry.redhat.io/ubi9/python-312` |
+| `docker.io/library/openjdk` | `registry.access.redhat.com/ubi8/openjdk-11:1.11` |
 
 ## Security Notifications
 
