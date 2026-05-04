@@ -1,0 +1,64 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: maven-image-build
+  annotations:
+    # The event we are targeting as seen from the webhook payload
+    # this can be an array too, i.e: [pull_request, push]
+    pipelinesascode.tekton.dev/on-event: "[push]"
+
+    # The branch or tag we are targeting (ie: main, refs/tags/*)
+    pipelinesascode.tekton.dev/on-target-branch: "[master]"
+
+    pipelinesascode.tekton.dev/pipeline: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/pipelines/maven-build-ci.yaml"
+    pipelinesascode.tekton.dev/task-0: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/init.yaml"
+    pipelinesascode.tekton.dev/task-1: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/git-clone.yaml"
+    pipelinesascode.tekton.dev/task-2: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/buildah-rhtap.yaml"
+    pipelinesascode.tekton.dev/task-3: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/acs-image-check.yaml"
+    pipelinesascode.tekton.dev/task-4: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/acs-image-scan.yaml"
+    pipelinesascode.tekton.dev/task-5: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/acs-deploy-check.yaml"
+    pipelinesascode.tekton.dev/task-6: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/update-deployment.yaml"
+    pipelinesascode.tekton.dev/task-7: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/show-sbom-rhdh.yaml"
+    pipelinesascode.tekton.dev/task-8: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/summary.yaml"
+    pipelinesascode.tekton.dev/task-9: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/maven.yaml"
+    pipelinesascode.tekton.dev/task-10: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/upload-sbom-to-trustification.yaml"
+    pipelinesascode.tekton.dev/task-11: "https://raw.githubusercontent.com/blues-man/my-quarkus-tkn/refs/heads/master/tkn/tasks/verify-commit.yaml"
+  labels:
+    backstage.io/kubernetes-id: "my-quarkus-tkn"
+spec:
+  params:
+    - name: component-name
+      value: my-quarkus-tkn
+    - name: dockerfile
+      value: ./Dockerfile
+    - name: git-url
+      value: '{{repo_url}}'
+    - name: image-expires-after
+      value: 5d
+    - name: output-image
+      value: "quay-892bb-1.apps.cluster-892bb.dynamic.redhatworkshops.io/tssc/my-quarkus-tkn:{{revision}}"
+    - name: path-context
+      value: ./
+    - name: revision
+      value: '{{revision}}'
+    - name: event-type
+      value: '{{event_type}}'
+  pipelineRef:
+    name: maven-build-ci
+  workspaces:
+    - name: gitops-auth
+      secret:
+        secretName: "{{ git_auth_secret }}"
+    - name: git-auth
+      secret:
+        secretName: "{{ git_auth_secret }}"
+    - name: workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+    - name: maven-settings
+      emptyDir: {}
