@@ -60,7 +60,7 @@ spec:
             - name: source
           steps:
             - name: buildah
-              image: registry.access.io/rhel8/buildah:latest
+              image: registry.access.redhat.com/rhel8/buildah:latest
               securityContext:
                 privileged: true
               workingDir: $(workspaces.source.path)
@@ -88,7 +88,7 @@ spec:
         taskSpec:
           steps:
             - name: deploy
-              image: registry.access.io/openshift4/ose-cli:latest
+              image: registry.access.redhat.com/openshift4/ose-cli:latest
               script: |
                 #!/usr/bin/env bash
                 set -euxo pipefail
