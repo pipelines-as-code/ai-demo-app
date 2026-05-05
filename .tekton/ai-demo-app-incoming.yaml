@@ -13,11 +13,15 @@ spec:
     params:
       - name: pull_request_number
         type: string
+    workspaces:
+      - name: git-auth
     tasks:
       - name: approve-pr
         params:
           - name: pull_request_number
             value: $(params.pull_request_number)
+        workspaces:
+          - name: git-auth
         taskSpec:
           params:
             - name: pull_request_number
