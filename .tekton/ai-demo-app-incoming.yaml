@@ -3,8 +3,8 @@ kind: PipelineRun
 metadata:
   name: ai-demo-app-incoming
   annotations:
-    pipelinesascode.tekton.dev/on-incoming: "[ai-demo-app-incoming]"
-    pipelinesascode.tekton.dev/target-branch: "[main]"
+    pipelinesascode.tekton.dev/on-event: "[incoming]"
+    pipelinesascode.tekton.dev/on-target-branch: "[main]"
 spec:
   params:
     - name: pull_request_number
