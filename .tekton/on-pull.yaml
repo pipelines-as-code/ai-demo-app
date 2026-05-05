@@ -1,0 +1,48 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: maven-image-build-pull-request
+  annotations:
+    pipelinesascode.tekton.dev/on-event: "[pull_request]"
+    pipelinesascode.tekton.dev/on-target-branch: "[main]"
+    pipelinesascode.tekton.dev/pipeline: "tkn/pipelines/maven-build-ci.yaml"
+    pipelinesascode.tekton.dev/task: "[tkn/tasks/init.yaml, tkn/tasks/git-clone.yaml, tkn/tasks/buildah-rhtap.yaml, tkn/tasks/acs-image-scan.yaml, tkn/tasks/acs-deploy-check.yaml, tkn/tasks/update-deployment.yaml, tkn/tasks/show-sbom-rhdh.yaml, tkn/tasks/summary.yaml, tkn/tasks/maven.yaml, tkn/tasks/upload-sbom-to-trustification.yaml, tkn/tasks/verify-commit.yaml, tkn/tasks/test-deployment.yaml, tkn/tasks/verify-approved-base-images.yaml, tkn/tasks/gate-decision.yaml]"
+  labels:
+    backstage.io/kubernetes-id: "my-quarkus-tkn"
+spec:
+  params:
+    - name: component-name
+      value: my-quarkus-tkn
+    - name: dockerfile
+      value: ./Dockerfile
+    - name: git-url
+      value: '{{repo_url}}'
+    - name: image-expires-after
+      value: 5d
+    - name: output-image
+      value: "quay-892bb-1.apps.cluster-892bb.dynamic.redhatworkshops.io/tssc/my-quarkus-tkn:{{revision}}"
+    - name: path-context
+      value: ./
+    - name: revision
+      value: '{{revision}}'
+    - name: event-type
+      value: '{{event_type}}'
+  pipelineRef:
+    name: maven-build-ci
+  workspaces:
+    - name: gitops-auth
+      secret:
+        secretName: "{{ git_auth_secret }}"
+    - name: git-auth
+      secret:
+        secretName: "{{ git_auth_secret }}"
+    - name: workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+    - name: maven-settings
+      emptyDir: {}

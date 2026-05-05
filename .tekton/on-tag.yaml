@@ -1,0 +1,39 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: promote-to-stage
+  annotations:
+    pipelinesascode.tekton.dev/on-event: "[tag]"
+    pipelinesascode.tekton.dev/on-target-branch: "[main]"
+    pipelinesascode.tekton.dev/pipeline: "tkn/pipelines/promote-to-env.yaml"
+    pipelinesascode.tekton.dev/task: "[tkn/tasks/gather-images-to-verify.yaml, tkn/tasks/verify-enterprise-contract.yaml, tkn/tasks/skopeo-copy.yaml, tkn/tasks/update-deployment.yaml]"
+  labels:
+    backstage.io/kubernetes-id: "my-quarkus-tkn"
+spec:
+  params:
+  - name: git-url
+    value: '{{repo_url}}'
+  - name: revision
+    value: '{{revision}}'
+  - name: target-branch
+    value: '{{target_branch}}'
+  - name: source-image
+    value: 'quay-892bb-1.apps.cluster-892bb.dynamic.redhatworkshops.io/tssc/my-quarkus-tkn'
+  - name: source-image-tag
+    value: '{{revision}}'
+  - name: environment
+    value: stage
+  pipelineRef:
+    name: promote-to-env
+  workspaces:
+    - name: workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+    - name: gitops-auth
+      secret:
+        secretName: "{{ git_auth_secret }}"
