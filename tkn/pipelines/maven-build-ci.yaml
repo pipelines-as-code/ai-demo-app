@@ -290,6 +290,9 @@ spec:
           values:
             - push
             - Push
+      workspaces:
+        - name: gitops-auth
+          workspace: gitops-auth
     - name: update-deployment
       params:
         - name: gitops-repo-url
@@ -307,6 +310,9 @@ spec:
           values:
             - pull_request
             - Merge Request
+      workspaces:
+        - name: gitops-auth
+          workspace: gitops-auth
   workspaces:
     - name: workspace
     - name: maven-settings
