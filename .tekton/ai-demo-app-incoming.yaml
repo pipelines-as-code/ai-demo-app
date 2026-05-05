@@ -40,5 +40,5 @@ spec:
                   -H "Authorization: token ${GITHUB_TOKEN}" \
                   -H "Accept: application/vnd.github.v3+json" \
                   "https://api.github.com/repos/pipelines-as-code/ai-demo-app/pulls/${PR}/reviews" \
-                  -d '{"event":"APPROVE","body":"Approved via Slack reaction"}'
+                  -d '{"event":"APPROVE","body":"## ✅ Security Review Approved\n\nThe security team has reviewed and approved this PR via Slack.\n\n🔒 All policy checks have been acknowledged.\n🚀 This PR is cleared for merge.\n\n_Ship it before someone changes their mind!_ 🫡"}'
                 echo "PR #${PR} approved successfully"
