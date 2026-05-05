@@ -1,5 +1,6 @@
 ---
 name: sre-agent
+on_cel: 'body.event.event_type == "pull_request" && body.pipelineRun.status.conditions[0].status == "False"'
 output: check-run
 context_items:
   error_content: true
