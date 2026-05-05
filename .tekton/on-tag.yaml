@@ -8,7 +8,7 @@ metadata:
     pipelinesascode.tekton.dev/pipeline: "tkn/pipelines/promote-to-env.yaml"
     pipelinesascode.tekton.dev/task: "[tkn/tasks/gather-images-to-verify.yaml, tkn/tasks/verify-enterprise-contract.yaml, tkn/tasks/skopeo-copy.yaml, tkn/tasks/update-deployment.yaml]"
   labels:
-    backstage.io/kubernetes-id: "my-quarkus-tkn"
+    backstage.io/kubernetes-id: "ai-demo-app"
 spec:
   params:
   - name: git-url
@@ -18,7 +18,7 @@ spec:
   - name: target-branch
     value: '{{target_branch}}'
   - name: source-image
-    value: 'quay-892bb-1.apps.cluster-892bb.dynamic.redhatworkshops.io/tssc/my-quarkus-tkn'
+    value: 'quay-892bb-1.apps.cluster-892bb.dynamic.redhatworkshops.io/tssc/ai-demo-app'
   - name: source-image-tag
     value: '{{revision}}'
   - name: environment
