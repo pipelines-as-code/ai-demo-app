@@ -13,15 +13,11 @@ spec:
     params:
       - name: pull_request_number
         type: string
-    workspaces:
-      - name: git-auth
     tasks:
       - name: approve-pr
         params:
           - name: pull_request_number
             value: $(params.pull_request_number)
-        workspaces:
-          - name: git-auth
         taskSpec:
           params:
             - name: pull_request_number
@@ -29,21 +25,20 @@ spec:
           steps:
             - name: approve
               image: curlimages/curl
+              env:
+                - name: GITHUB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: "{{ git_auth_secret }}"
+                      key: "git-provider-token"
               script: |
                 #!/bin/sh
                 set -eu
                 PR="$(params.pull_request_number)"
-                TOKEN=$(cat /workspace/git-auth/.git-credentials | grep -o 'x-access-token:[^@]*' | cut -d: -f2)
                 echo "Approving PR #${PR} on pipelines-as-code/ai-demo-app"
                 curl -sf -X POST \
-                  -H "Authorization: token ${TOKEN}" \
+                  -H "Authorization: token ${GITHUB_TOKEN}" \
                   -H "Accept: application/vnd.github.v3+json" \
                   "https://api.github.com/repos/pipelines-as-code/ai-demo-app/pulls/${PR}/reviews" \
                   -d '{"event":"APPROVE","body":"Approved via Slack reaction"}'
                 echo "PR #${PR} approved successfully"
-          workspaces:
-            - name: git-auth
-  workspaces:
-    - name: git-auth
-      secret:
-        secretName: "{{ git_auth_secret }}"
