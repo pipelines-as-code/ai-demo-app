@@ -7,22 +7,23 @@ metadata:
     pipelinesascode.tekton.dev/on-target-branch: "[main]"
     pipelinesascode.tekton.dev/pipeline: "tkn/pipelines/promote-to-env.yaml"
     pipelinesascode.tekton.dev/task: "[tkn/tasks/gather-images-to-verify.yaml, tkn/tasks/verify-enterprise-contract.yaml, tkn/tasks/skopeo-copy.yaml, tkn/tasks/update-deployment.yaml]"
+    pipelinesascode.tekton.dev/max-keep-runs: 2
   labels:
     backstage.io/kubernetes-id: "ai-demo-app"
 spec:
   params:
-  - name: git-url
-    value: '{{repo_url}}'
-  - name: revision
-    value: '{{revision}}'
-  - name: target-branch
-    value: '{{target_branch}}'
-  - name: source-image
-    value: 'quay-892bb-1.apps.cluster-892bb.dynamic.redhatworkshops.io/tssc/ai-demo-app'
-  - name: source-image-tag
-    value: '{{revision}}'
-  - name: environment
-    value: stage
+    - name: git-url
+      value: "{{repo_url}}"
+    - name: revision
+      value: "{{revision}}"
+    - name: target-branch
+      value: "{{target_branch}}"
+    - name: source-image
+      value: "quay-892bb-1.apps.cluster-892bb.dynamic.redhatworkshops.io/tssc/ai-demo-app"
+    - name: source-image-tag
+      value: "{{revision}}"
+    - name: environment
+      value: stage
   pipelineRef:
     name: promote-to-env
   workspaces:
@@ -30,7 +31,7 @@ spec:
       volumeClaimTemplate:
         spec:
           accessModes:
-          - ReadWriteOnce
+            - ReadWriteOnce
           resources:
             requests:
               storage: 1Gi
