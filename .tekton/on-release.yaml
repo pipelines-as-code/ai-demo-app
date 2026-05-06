@@ -7,7 +7,7 @@ metadata:
     pipelinesascode.tekton.dev/on-target-branch: "[main]"
     pipelinesascode.tekton.dev/pipeline: "tkn/pipelines/promote-to-env.yaml"
     pipelinesascode.tekton.dev/task: "[tkn/tasks/gather-images-to-verify.yaml, tkn/tasks/verify-enterprise-contract.yaml, tkn/tasks/skopeo-copy.yaml, tkn/tasks/update-deployment.yaml]"
-    pipelinesascode.tekton.dev/max-keep-runs: 2
+    pipelinesascode.tekton.dev/max-keep-runs: "2"
   labels:
     backstage.io/kubernetes-id: "ai-demo-app"
 spec:
