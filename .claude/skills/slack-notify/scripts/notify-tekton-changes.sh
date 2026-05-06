@@ -77,12 +77,24 @@ SLACK_WEBHOOK_URL="${SLACK_WEBHOOK_URL:-}"
 AI_SUMMARY="${PAC_CHANGE_SUMMARY:-}"
 PR_NUMBER="${PAC_PR_NUMBER:-0}"
 PR_URL="${PAC_REPO_URL:-}"
+AI_MODE="${PAC_AI_MODE:-analysis}"
+AI_TRIGGER_SOURCE="${PAC_AI_TRIGGER_SOURCE:-human_pr}"
 if [[ -n "${PR_URL}" && "${PR_NUMBER}" != "0" ]]; then
   PR_URL="${PR_URL%/}/pull/${PR_NUMBER}"
 fi
 
 if [[ "${PR_NUMBER}" == "0" ]]; then
   echo "No pull request metadata available — skipped."
+  exit 0
+fi
+
+if [[ "${AI_MODE}" == "apply" ]]; then
+  echo "Slack notification skipped during AI apply mode."
+  exit 0
+fi
+
+if [[ "${AI_TRIGGER_SOURCE}" == "ai_remediation" ]]; then
+  echo "Slack notification suppressed for AI remediation rerun."
   exit 0
 fi
 

@@ -77,6 +77,13 @@ changes, missing webhook). When `PAC_CHANGE_SUMMARY` is set, the Slack message
 includes the AI-generated analysis; otherwise it falls back to a per-file
 listing. Any output it prints is the status — relay it to the user.
 
+If PAC exports agent-mode metadata, the script also suppresses notifications in
+two cases:
+
+- `PAC_AI_MODE=apply` — skip during the AI fix/apply phase
+- `PAC_AI_TRIGGER_SOURCE=ai_remediation` — suppress Slack on analysis runs
+  triggered by an AI remediation commit
+
 ## Step 4: Report outcome
 
 Tell the user one of:
@@ -85,6 +92,8 @@ Tell the user one of:
 - "PR #N has no policy-relevant changes — no notification sent."
 - "Slack notification sent for PR #N (N policy-relevant file(s) changed)."
 - "SLACK_WEBHOOK_URL is not configured — skipped. Set it to the K8s secret value to enable notifications."
+- "Slack notification skipped during AI apply mode."
+- "Slack notification suppressed for AI remediation rerun."
 
 ## Environment
 
@@ -112,3 +121,8 @@ script also expects:
 - `PAC_REPO_OWNER`
 - `PAC_REPO_NAME`
 - `gh` authenticated well enough to read PR file metadata
+
+Optional PAC agent metadata:
+
+- `PAC_AI_MODE` (expected values: `analysis`, `apply`)
+- `PAC_AI_TRIGGER_SOURCE` (expected values: `human_pr`, `ai_remediation`)

@@ -58,6 +58,8 @@ run_notifier() {
   local capture_file="${5:-}"
   local ai_summary="${6:-}"
   local pr_title="${7-Test PR}"
+  local ai_mode="${8-analysis}"
+  local ai_trigger_source="${9-human_pr}"
 
   if [[ -n "${capture_file}" ]]; then
     rm -f "${capture_file}"
@@ -73,6 +75,8 @@ run_notifier() {
     export PAC_REPO_URL="https://github.com/pipelines-as-code/ai-demo-app"
     export PAC_REPO_OWNER="pipelines-as-code"
     export PAC_REPO_NAME="ai-demo-app"
+    export PAC_AI_MODE="${ai_mode}"
+    export PAC_AI_TRIGGER_SOURCE="${ai_trigger_source}"
     export SLACK_WEBHOOK_URL="${webhook}"
     if [[ -n "${changed_files}" ]]; then
       export PAC_CHANGED_FILES_B64
@@ -139,6 +143,35 @@ main() {
   assert_contains "${output}" "No changed-file metadata available for PR #42 — skipped."
   if [[ -e "${temp_dir}/payload-no-metadata.json" ]]; then
     echo "unexpected payload for missing metadata" >&2
+    exit 1
+  fi
+
+  output=$(run_notifier "${temp_dir}/bin" \
+    '[{"filename":"Dockerfile","patch":"@@\n+FROM registry.access.redhat.com/ubi8/openjdk-17:1.20"}]' \
+    'Dockerfile' \
+    'https://hooks.slack.test/services/demo' \
+    "${temp_dir}/payload-apply-mode.json" \
+    "" \
+    "Test PR" \
+    "apply")
+  assert_contains "${output}" "Slack notification skipped during AI apply mode."
+  if [[ -e "${temp_dir}/payload-apply-mode.json" ]]; then
+    echo "unexpected payload during apply mode" >&2
+    exit 1
+  fi
+
+  output=$(run_notifier "${temp_dir}/bin" \
+    '[{"filename":"Dockerfile","patch":"@@\n+FROM registry.access.redhat.com/ubi8/openjdk-17:1.20"}]' \
+    'Dockerfile' \
+    'https://hooks.slack.test/services/demo' \
+    "${temp_dir}/payload-ai-remediation.json" \
+    "" \
+    "Test PR" \
+    "analysis" \
+    "ai_remediation")
+  assert_contains "${output}" "Slack notification suppressed for AI remediation rerun."
+  if [[ -e "${temp_dir}/payload-ai-remediation.json" ]]; then
+    echo "unexpected payload during AI remediation rerun" >&2
     exit 1
   fi
 
