@@ -19,7 +19,7 @@ spec:
     - name: target-branch
       value: "prod-{{body.ref}}"
     - name: source-image
-      value: "quay-892bb-1.apps.cluster-892bb.dynamic.redhatworkshops.io/tssc/ai-demo-app"
+      value: "quay-l7hfb-1.apps.cluster-l7hfb.dynamic2.redhatworkshops.io/tssc/ai-demo-app"
     - name: source-image-tag
       value: "{{body.ref}}"
     - name: environment
