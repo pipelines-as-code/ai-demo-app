@@ -1,4 +1,4 @@
-# my-quarkus-tkn
+# ai-demo-app
 
 A cool secure quarkus app
 
