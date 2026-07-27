@@ -12,11 +12,23 @@ spec:
       description: |
         Newline-separated list of base images in NAME:TAG@DIGEST format,
         produced by the buildah-rhtap task.
+    - name: DOCKERFILE
+      type: string
+      default: ./Dockerfile
+      description: |
+        Path to the Dockerfile, relative to the repository root. Used to
+        resolve the line number of an offending FROM instruction so the
+        violation can be reported as a source annotation.
   results:
     - name: RESULT
       description: >-
         PASSED if all base images match an approved prefix,
         FAILED followed by details otherwise.
+    - name: ANNOTATIONS
+      description: >-
+        Newline-separated "file:line:column message" entries for every
+        rejected base image, in the format Pipelines as Code turns into
+        pull request annotations. Empty when verification passes.
   workspaces:
     - name: workspace
   steps:
@@ -25,11 +37,17 @@ spec:
       env:
         - name: BASE_IMAGES_DIGESTS
           value: $(params.BASE_IMAGES_DIGESTS)
+        - name: DOCKERFILE
+          value: $(params.DOCKERFILE)
       script: |
         #!/usr/bin/env bash
         set -uo pipefail
 
         ALLOWLIST="$(workspaces.workspace.path)/source/ALLOWED_IMAGES.yaml"
+
+        # Always emit ANNOTATIONS so downstream tasks can consume the result
+        # even when verification short-circuits.
+        : > "$(results.ANNOTATIONS.path)"
 
         if [ ! -f "$ALLOWLIST" ]; then
           msg="FAILED: ALLOWED_IMAGES.yaml not found at repository root"
@@ -57,6 +75,7 @@ spec:
         echo ""
 
         FAILED_IMAGES=""
+        REJECTED=()
         CHECKED=0
 
         while IFS= read -r line; do
@@ -91,6 +110,7 @@ spec:
             echo "APPROVED: $line"
           else
             echo "REJECTED: $line"
+            REJECTED+=("$IMAGE_NAME")
             if [ -n "$FAILED_IMAGES" ]; then
               FAILED_IMAGES="${FAILED_IMAGES}, ${IMAGE_NAME}"
             else
@@ -125,4 +145,27 @@ spec:
           echo "Fix: Update your Dockerfile FROM line to use an image from an approved registry."
           echo "See AGENTS.md for the approved image mapping table."
           printf '%s' "$msg" > "$(results.RESULT.path)"
+
+          # Resolve each rejected image back to the FROM line that introduced
+          # it, so the violation can be shown on the diff instead of only in
+          # this log. The format is the one Pipelines as Code parses into a
+          # pull request annotation: "file:line:column message".
+          DOCKERFILE_REL="${DOCKERFILE#./}"
+          DOCKERFILE_PATH="$(workspaces.workspace.path)/source/${DOCKERFILE_REL}"
+
+          if [ -f "$DOCKERFILE_PATH" ]; then
+            echo ""
+            echo "Offending lines in ${DOCKERFILE_REL}:"
+            for image in "${REJECTED[@]}"; do
+              line=$(awk -v img="$image" \
+                'toupper($1) == "FROM" && index($0, img) { print NR; exit }' \
+                "$DOCKERFILE_PATH")
+              [ -z "$line" ] && continue
+              printf '%s:%s:1 unapproved base image %s, replace it with an approved Red Hat image (see AGENTS.md)\n' \
+                "$DOCKERFILE_REL" "$line" "$image" \
+                | tee -a "$(results.ANNOTATIONS.path)"
+            done
+          else
+            echo "Dockerfile not found at ${DOCKERFILE_PATH}, skipping annotations."
+          fi
         fi

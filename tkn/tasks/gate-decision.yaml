@@ -18,6 +18,14 @@ spec:
       description: |
         JSON vulnerability summary from acs-image-scan task.
         Format: {"vulnerabilities":{"critical":N,"high":N,"medium":N,"low":N}}
+    - name: BASE_IMAGE_ANNOTATIONS
+      type: string
+      default: ""
+      description: |
+        Newline-separated "file:line:column message" entries from
+        verify-approved-base-images. Reprinted here because Pipelines as Code
+        only scrapes annotations from the logs of the task that failed, and
+        this is that task.
   results:
     - name: DECISION
       description: PASSED or FAILED with combined rationale.
@@ -29,6 +37,8 @@ spec:
           value: $(params.BASE_IMAGE_RESULT)
         - name: SCAN_OUTPUT
           value: $(params.SCAN_OUTPUT)
+        - name: BASE_IMAGE_ANNOTATIONS
+          value: $(params.BASE_IMAGE_ANNOTATIONS)
       script: |
         #!/usr/bin/env bash
         set -uo pipefail
@@ -82,6 +92,15 @@ spec:
           echo ""
           echo "Pipeline will not proceed to deployment."
           printf 'FAILED: %s' "$REASONS" > "$(results.DECISION.path)"
+
+          # Printed last, unindented, so Pipelines as Code can scrape them out
+          # of this task's log tail and attach them to the offending source
+          # lines in the pull request diff.
+          if [ -n "${BASE_IMAGE_ANNOTATIONS//[[:space:]]/}" ]; then
+            echo ""
+            printf '%s\n' "$BASE_IMAGE_ANNOTATIONS"
+          fi
+
           exit 1
         else
           echo "=========================================="
