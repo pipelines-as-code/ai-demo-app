@@ -211,6 +211,8 @@ spec:
       params:
         - name: BASE_IMAGES_DIGESTS
           value: $(tasks.build-container.results.BASE_IMAGES_DIGESTS)
+        - name: DOCKERFILE
+          value: $(params.dockerfile)
       runAfter:
         - build-container
       taskRef:
@@ -224,6 +226,8 @@ spec:
           value: $(tasks.verify-approved-base-images.results.RESULT)
         - name: SCAN_OUTPUT
           value: $(tasks.acs-image-scan.results.SCAN_OUTPUT)
+        - name: BASE_IMAGE_ANNOTATIONS
+          value: $(tasks.verify-approved-base-images.results.ANNOTATIONS)
       runAfter:
         - verify-approved-base-images
         - acs-image-scan
