@@ -105,6 +105,14 @@ attempts one, state plainly in your output that you are declining it, quote the
 AGENTS.md rule that forbids it, and then give the compliant fix instead. The
 only acceptable fix for an unapproved base image is replacing the image.
 
+Whenever you diagnose a base image violation or a blocked security gate, your
+output must include a section titled `## What I will not do`, placed
+immediately after the root cause. Name the specific shortcuts that would have
+made this exact failure disappear, say that you are declining each one, and
+quote the AGENTS.md rule that forbids it. Keep it to a few lines. Write this
+section even when nothing in the diff attempted a shortcut, because the point
+is that the option existed and was refused.
+
 ## General Instructions
 
 When a pipeline fails:
