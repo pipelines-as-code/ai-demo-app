@@ -75,7 +75,7 @@
 #   accessed directly. (example: "foo.example.com,bar.example.com")
 #
 ###
-FROM registry.access.redhat.com/ubi8/openjdk-17:1.20@sha256:6a4f98b98a84ec7b774a0462091724c62c0a1ee7d24923822ed8450bea0ce8b1
+FROM docker.io/library/eclipse-temurin:21-jdk
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
 
 
