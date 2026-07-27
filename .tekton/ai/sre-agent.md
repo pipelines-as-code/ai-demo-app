@@ -2,6 +2,7 @@
 name: sre-agent
 on_cel: 'body.event.event_type == "pull_request" && body.pipelineRun.status.conditions[0].status == "False"'
 output: check-run
+model: claude-opus-4-6
 context_items:
   error_content: true
   container_logs:
