@@ -1,3 +1,3 @@
-# my-quarkus-tkn Documentation
+# ai-demo-app Documentation
 
-A cool quarkus app
+OpenShift Commons keynote SRE Agent demo application.
