@@ -1,7 +1,7 @@
-site_name: my-quarkus-tkn
-site_description: A cool quarkus app
-repo_url: https://gitlab-gitlab.apps.cluster-892bb.dynamic.redhatworkshops.io/development/my-quarkus-tkn
-edit_uri: edit/master/docs
+site_name: ai-demo-app
+site_description: OpenShift Commons keynote SRE Agent demo application
+repo_url: https://github.com/pipelines-as-code/ai-demo-app
+edit_uri: edit/main/docs
 
 plugins:
   - techdocs-core

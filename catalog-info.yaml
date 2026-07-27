@@ -1,38 +1,34 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: "my-quarkus-tkn"
-  description: "A cool quarkus app"
+  name: "ai-demo-app"
+  description: "OpenShift Commons keynote SRE Agent demo application"
   annotations:
-    argocd/app-selector: tssc/gitops=my-quarkus-tkn
-    backstage.io/kubernetes-id: my-quarkus-tkn
-    janus-idp.io/tekton: my-quarkus-tkn
-    backstage.io/source-location: url:https://gitlab-gitlab.apps.cluster-892bb.dynamic.redhatworkshops.io/development/my-quarkus-tkn
-    backstage.io/techdocs-ref: url:https://gitlab-gitlab.apps.cluster-892bb.dynamic.redhatworkshops.io/development/my-quarkus-tkn
-    gitlab.com/project-slug: development/my-quarkus-tkn
-    quay.io/repository-slug: "tssc/my-quarkus-tkn"
+    argocd/app-selector: tssc/gitops=ai-demo-app
+    backstage.io/kubernetes-id: ai-demo-app
+    janus-idp.io/tekton: ai-demo-app
+    backstage.io/source-location: url:https://github.com/pipelines-as-code/ai-demo-app/tree/main
+    backstage.io/techdocs-ref: url:https://github.com/pipelines-as-code/ai-demo-app
+    quay.io/repository-slug: "tssc/ai-demo-app"
   tags:
     - java
     - quarkus
   links:
-    - url: https://devspaces.apps.cluster-892bb.dynamic.redhatworkshops.io/#https://gitlab-gitlab.apps.cluster-892bb.dynamic.redhatworkshops.io/development/my-quarkus-tkn
-      title: OpenShift Dev Spaces (VS Code)
-      icon: web
-    - url: https://devspaces.apps.cluster-892bb.dynamic.redhatworkshops.io/#https://gitlab-gitlab.apps.cluster-892bb.dynamic.redhatworkshops.io/development/my-quarkus-tkn?che-editor=che-incubator/che-idea/latest
-      title: OpenShift Dev Spaces (JetBrains IntelliJ)
+    - url: https://devspaces.apps.cluster-smnvd.dyn.redhatworkshops.io/#https://github.com/pipelines-as-code/ai-demo-app
+      title: Open in OpenShift Dev Spaces
       icon: web
 spec:
   type: service
   lifecycle: production
   owner: "user:default/user1"
   providesApis:
-    - "my-quarkus-tkn"
+    - "ai-demo-app"
 ---
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
-  name: "my-quarkus-tkn"
-  description: "A cool quarkus app"
+  name: "ai-demo-app"
+  description: "OpenShift Commons keynote SRE Agent demo application API"
 spec:
   type: openapi
   lifecycle: production

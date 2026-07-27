@@ -4,10 +4,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <groupId>redhat.rhdh</groupId>
-    <artifactId>my-quarkus-tkn</artifactId>
+    <artifactId>ai-demo-app</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>my-quarkus-tkn</name>
+    <name>ai-demo-app</name>
     <description>A cool quarkus app</description>
 
     <properties>
