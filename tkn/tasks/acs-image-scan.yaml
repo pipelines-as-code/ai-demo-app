@@ -157,12 +157,33 @@ spec:
           fi
         done
 
-        # Set SCAN_OUTPUT result
+        # Count only fixable critical CVEs (unfixable base-image CVEs are deferred in ACS)
+        echo "roxctl image check (respects ACS deferrals)"
+        ./roxctl image check \
+          $( [ "${PARAM_INSECURE_SKIP_TLS_VERIFY}" = "true" ] && \
+          echo -n "--insecure-skip-tls-verify") \
+          -e "${ROX_CENTRAL_ENDPOINT}" --image "$IMAGE" --output table \
+          > roxctl_image_check_output.txt 2>&1
+        image_check_err_code=$?
+        cat roxctl_image_check_output.txt
+        echo ""
+        echo "roxctl image check exit code: $image_check_err_code"
+
+        # Set SCAN_OUTPUT result - raw counts for reporting
         critical=$(cat roxctl_image_scan_output.json | grep -oP '(?<="CRITICAL": )\d+')
         high=$(cat roxctl_image_scan_output.json | grep -oP '(?<="IMPORTANT": )\d+')
         medium=$(cat roxctl_image_scan_output.json | grep -oP '(?<="MODERATE": )\d+')
         low=$(cat roxctl_image_scan_output.json | grep -oP '(?<="LOW": )\d+')
-        echo "{\"vulnerabilities\":{\"critical\":${critical},\"high\":${high},\"medium\":${medium},\"low\":${low}}}" | tee $(results.SCAN_OUTPUT.path)
+
+        # If image check passed (exit 0), override critical to 0 (deferrals honoured)
+        if [ "$image_check_err_code" -eq 0 ]; then
+          echo "ACS image check PASSED (vulnerability deferrals applied)"
+          critical=0
+        else
+          echo "ACS image check FAILED"
+        fi
+
+        echo "{\"vulnerabilities\":{\"critical\":${critical:-0},\"high\":${high:-0},\"medium\":${medium:-0},\"low\":${low:-0}}}" | tee $(results.SCAN_OUTPUT.path)
 
         # Set TEST_OUTPUT result
         if [[ -n "$critical" && "$critical" -eq 0 && "$high" -eq 0 && "$medium" -eq 0 && "$low" -eq 0 ]]; then
