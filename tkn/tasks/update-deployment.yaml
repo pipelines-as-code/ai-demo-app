@@ -8,6 +8,10 @@ spec:
     - name: gitops-repo-url
       type: string
       description: URL of gitops repository to update with the newly built image.
+    - name: gitops-repo-branch
+      type: string
+      default: main
+      description: Branch of the gitops repository to clone and push updates to.
     - name: image
       type: string
       description: Reference of the newly built image to use..
@@ -23,6 +27,8 @@ spec:
       env:
         - name: PARAM_GITOPS_REPO_URL
           value: $(params.gitops-repo-url)
+        - name: PARAM_GITOPS_REPO_BRANCH
+          value: $(params.gitops-repo-branch)
         - name: PARAM_IMAGE
           value: $(params.image)
         - name: PARAM_ENV
@@ -59,13 +65,13 @@ spec:
         git config --global user.email "rhtap@noreplay.com"
         git config --global user.name "gitops-update"
 
-        git clone ${PARAM_GITOPS_REPO_URL}
+        git clone -b "${PARAM_GITOPS_REPO_BRANCH}" ${PARAM_GITOPS_REPO_URL}
         gitops_repo_url=${PARAM_GITOPS_REPO_URL%'.git'}
         gitops_repo_name=$(basename ${gitops_repo_url})
         cd ${gitops_repo_name}
 
         component_name=$(yq .metadata.name application.yaml)
-        deployment_patch_filepath="components/${component_name}/overlays/${PARAM_ENV}/deployment-patch.yaml"
+        deployment_patch_filepath="components/${component_name}/overlays/${PARAM_ENV}/rollout-patch.yaml"
         IMAGE_PATH='.spec.template.spec.containers[0].image'
         old_image=$(yq "${IMAGE_PATH}" "${deployment_patch_filepath}")
         yq e -i "${IMAGE_PATH} |= \"${PARAM_IMAGE}\"" "${deployment_patch_filepath}"

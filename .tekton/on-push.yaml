@@ -28,6 +28,8 @@ spec:
       value: "{{revision}}"
     - name: event-type
       value: "{{event_type}}"
+    - name: gitops-repo-branch
+      value: rollout
   pipelineRef:
     name: maven-build-ci
   workspaces:

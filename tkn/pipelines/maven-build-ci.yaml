@@ -69,6 +69,10 @@ spec:
       description: Event that triggered the pipeline run, e.g. push, pull_request
       name: event-type
       type: string
+    - default: main
+      description: Branch of the gitops repository
+      name: gitops-repo-branch
+      type: string
     - default: []
       description: Array of --build-arg values ("arg=value" strings) for buildah
       name: build-args
@@ -277,6 +281,8 @@ spec:
           value: $(params.stackrox-secret)
         - name: gitops-repo-url
           value: $(params.git-url)-gitops
+        - name: gitops-repo-branch
+          value: $(params.gitops-repo-branch)
         - name: insecure-skip-tls-verify
           value: "true"
       runAfter:
@@ -297,6 +303,8 @@ spec:
       params:
         - name: gitops-repo-url
           value: $(params.git-url)-gitops
+        - name: gitops-repo-branch
+          value: $(params.gitops-repo-branch)
         - name: image
           value: $(tasks.build-container.results.IMAGE_URL)@$(tasks.build-container.results.IMAGE_DIGEST)
       runAfter:

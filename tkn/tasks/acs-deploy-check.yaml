@@ -22,6 +22,10 @@ spec:
     - name: gitops-repo-url
       type: string
       description: URL of gitops repository to check.
+    - name: gitops-repo-branch
+      type: string
+      default: main
+      description: Branch of the gitops repository to clone.
     - name: verbose
       type: string
       default: 'true'
@@ -64,6 +68,8 @@ spec:
           value: $(params.insecure-skip-tls-verify)
         - name: PARAM_GITOPS_REPO_URL
           value: $(params.gitops-repo-url)
+        - name: PARAM_GITOPS_REPO_BRANCH
+          value: $(params.gitops-repo-branch)
         - name: WORKSPACE_GITOPS_AUTH_DIRECTORY_BOUND
           value: $(workspaces.gitops-auth.bound)
         - name: WORKSPACE_GITOPS_AUTH_DIRECTORY_PATH
@@ -112,7 +118,7 @@ spec:
 
         # Clone gitops repository
         echo "Using gitops repository: ${PARAM_GITOPS_REPO_URL}"
-        git clone "${PARAM_GITOPS_REPO_URL}" --single-branch --depth 1 gitops
+        git clone "${PARAM_GITOPS_REPO_URL}" --single-branch --branch "${PARAM_GITOPS_REPO_BRANCH}" --depth 1 gitops
         cd gitops
         echo "List of files in gitops repository root:"
         ls -al

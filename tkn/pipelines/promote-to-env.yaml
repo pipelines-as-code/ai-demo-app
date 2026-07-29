@@ -53,6 +53,10 @@ spec:
       required keys)?
     name: fail-if-trustification-not-configured
     type: string
+  - default: main
+    description: Branch of the gitops repository
+    name: gitops-repo-branch
+    type: string
   tasks:
   - name: extract-destination-image-tag
     taskSpec:
@@ -119,6 +123,8 @@ spec:
     params:
       - name: gitops-repo-url
         value: $(params.git-url)-gitops
+      - name: gitops-repo-branch
+        value: $(params.gitops-repo-branch)
       - name: image
         value: $(params.source-image):$(tasks.extract-destination-image-tag.results.DESTINATION_IMAGE_TAG)
       - name: environment
